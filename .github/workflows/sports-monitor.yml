@@ -28,5 +28,5 @@ jobs:
 
       - name: Run sports gap monitor
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
         run: python monitor.py

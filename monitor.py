@@ -20,7 +20,8 @@ import requests
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "")
+SLACK_TOKEN   = os.environ.get("SLACK_TOKEN", "")
+SLACK_CHANNEL = "C0AV3LV1F4Z"
 
 KALSHI_BASE     = "https://api.elections.kalshi.com/trade-api/v2"
 POLYMARKET_BASE = "https://gamma-api.polymarket.com"
@@ -317,16 +318,27 @@ def post_to_slack(gaps: list) -> None:
             vol = f" _(${g['volume_24h']:,.0f} 24h vol)_" if g["volume_24h"] else ""
             lines.append(f"  - {g['title']}{vol}")
 
-    payload = {"text": "\n".join(lines)}
-    resp = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=10)
+    payload = {
+        "channel": SLACK_CHANNEL,
+        "text": "\n".join(lines),
+    }
+    resp = requests.post(
+        "https://slack.com/api/chat.postMessage",
+        json=payload,
+        headers={"Authorization": f"Bearer {SLACK_TOKEN}"},
+        timeout=10,
+    )
     resp.raise_for_status()
+    data = resp.json()
+    if not data.get("ok"):
+        raise RuntimeError(f"Slack error: {data.get('error')}")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    if not SLACK_WEBHOOK_URL:
-        print("ERROR: SLACK_WEBHOOK_URL is not set.", file=sys.stderr)
+    if not SLACK_TOKEN:
+        print("ERROR: SLACK_TOKEN is not set.", file=sys.stderr)
         sys.exit(1)
 
     print("Fetching Kalshi trending sports...")

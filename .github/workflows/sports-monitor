@@ -1,0 +1,32 @@
+name: Sports Market Gap Monitor
+
+on:
+  schedule:
+    # Runs every 2 hours. Adjust cron to your preferred schedule.
+    # Cron syntax: minute hour day month weekday
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+    # Allows manual trigger from the GitHub Actions UI (Actions → Run workflow)
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run sports gap monitor
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python monitor.py
